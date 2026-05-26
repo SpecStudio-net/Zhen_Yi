@@ -1,0 +1,100 @@
+.view {
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* ── Left: glyph panel ────────────────────────────────────────────────────── */
+
+.glyphPanel {
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 44px 20px;
+  border-right: 1px solid var(--surface, #1e1a16);
+}
+
+.glyph {
+  width: 100%;
+}
+
+/* ── Right: text panel ────────────────────────────────────────────────────── */
+
+.textPanel {
+  overflow-y: auto;
+  padding: 44px 52px;
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+/* ── Header ───────────────────────────────────────────────────────────────── */
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--surface, #1e1a16);
+}
+
+.number    { font-size: 20px; color: var(--text-secondary, #9a9080); min-width: 28px; }
+.character { font-size: 60px; line-height: 1; }
+.names     { display: flex; flex-direction: column; gap: 6px; }
+.pinyin    { font-size: 40px; font-family: var(--font-display, 'Cormorant Garamond', serif); }
+.english   { font-size: 24px; color: var(--text-secondary, #9a9080); letter-spacing: 0.04em; }
+
+/* ── Sections ─────────────────────────────────────────────────────────────── */
+
+.section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.sectionHead {
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #9a9080);
+}
+
+.introduction {
+  font-size: 26px;
+  line-height: 1.75;
+  color: var(--text-primary, #f0ead8);
+}
+
+.verse {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 35px;
+  line-height: 1.4;
+  white-space: pre-line;
+  color: var(--text-primary, #f0ead8);
+}
+
+.commentary {
+  font-size: 26px;
+  line-height: 1.8;
+  color: var(--text-primary, #f0ead8);
+  white-space: pre-line;
+}
+
+/* ── Lines ────────────────────────────────────────────────────────────────── */
+
+.line {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px 22px;
+  border-left: 2px solid var(--surface, #1e1a16);
+}
+
+.linePosition {
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary, #9a9080);
+}

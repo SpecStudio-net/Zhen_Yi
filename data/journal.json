@@ -1,0 +1,58 @@
+{
+  "readings": [
+    {
+      "id": "8c4c2440-dfd0-499c-8d71-b6dc9d2b69eb",
+      "timestamp": "2026-05-24T23:28:51.403Z",
+      "question": "what is the meaning of my dreams last night (conflict and threats)? ",
+      "cast": {
+        "lines": [
+          8,
+          8,
+          9,
+          8,
+          9,
+          8
+        ],
+        "primary": 39,
+        "relating": 2
+      },
+      "notes": "i'm pleased by the accuracy and appropriateness of the reading."
+    },
+    {
+      "id": "c04105bf-1084-4442-9ea8-67f90f239761",
+      "timestamp": "2026-05-24T14:03:33.356Z",
+      "question": "What about building an app for Bhikkhu Ñānananda's books?",
+      "cast": {
+        "lines": [
+          8,
+          8,
+          8,
+          7,
+          8,
+          8
+        ],
+        "primary": 16,
+        "relating": null
+      },
+      "notes": ""
+    },
+    {
+      "id": "2dc71de3-c6e4-4723-a86e-58421f0176ac",
+      "timestamp": "2026-05-23T14:03:45.107Z",
+      "question": "what is the ultimate result of studying Yìjīng?",
+      "cast": {
+        "lines": [
+          7,
+          7,
+          8,
+          7,
+          9,
+          8
+        ],
+        "primary": 58,
+        "relating": 54
+      },
+      "notes": "first reading!"
+    }
+  ]
+}

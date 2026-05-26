@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Hexagram Component Preview</title>
+  <style>
+    :root {
+      --bg:             #14120f;
+      --surface:        #1e1a16;
+      --text-primary:   #f0ead8;
+      --text-secondary: #9a9080;
+      --accent:         #c9a84c;
+      --fade-duration:  300ms;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      padding: 48px 32px;
+    }
+
+    h1 {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+      margin-bottom: 48px;
+    }
+
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 40px 32px;
+      align-items: flex-start;
+    }
+
+    .cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .cell svg {
+      display: block;
+      width: 72px;
+      height: auto;
+      color: var(--text-primary);
+    }
+
+    .cell.subordinate svg {
+      opacity: 0.45;
+    }
+
+    .label {
+      font-size: 11px;
+      color: var(--text-secondary);
+      letter-spacing: 0.06em;
+      text-align: center;
+      line-height: 1.6;
+      white-space: pre-line;
+    }
+
+    /* staggered fade-in for the animated specimen */
+    .anim g:nth-child(1) { animation: fadeIn 300ms 0ms   ease-out both; }
+    .anim g:nth-child(2) { animation: fadeIn 300ms 200ms ease-out both; }
+    .anim g:nth-child(3) { animation: fadeIn 300ms 400ms ease-out both; }
+    .anim g:nth-child(4) { animation: fadeIn 300ms 600ms ease-out both; }
+    .anim g:nth-child(5) { animation: fadeIn 300ms 800ms ease-out both; }
+    .anim g:nth-child(6) { animation: fadeIn 300ms 1000ms ease-out both; }
+  </style>
+</head>
+<body>
+  <h1>Hexagram · Phase 3 Preview</h1>
+  <div class="grid" id="gallery"></div>
+
+  <script>
+    const W = 100, H = 150, LH = 7, STEP = 20, PAD = 15;
+    const GAP = Math.round(W * 0.12);       // 12px gap in broken line
+    const HALF = Math.round((W - GAP) / 2); // 44px each side
+
+    // Returns SVG markup for one line group.
+    // Ordered top→bottom in the SVG (i=5 = line 6 = top; i=0 = line 1 = bottom)
+    function lineGroup(value, svgIndex, animClass) {
+      const y        = PAD + (5 - svgIndex) * STEP;
+      const changing = value === 6 || value === 9;
+      const isYang   = value === 7 || value === 9;
+      const blank    = value == null;
+      const cls      = animClass ? ` class="${animClass}"` : '';
+      const fill     = changing ? 'var(--accent)' : 'currentColor';
+
+      if (blank) {
+        return `<g${cls}><rect x="0" y="${y}" width="${W}" height="${LH}"
+          fill="none" stroke="currentColor" stroke-width="0.75" opacity="0.2"/></g>`;
+      }
+      if (isYang) {
+        return `<g${cls}><rect x="0" y="${y}" width="${W}" height="${LH}" fill="${fill}"/></g>`;
+      }
+      // yīn — two bars
+      return `<g${cls}>
+        <rect x="0"           y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/>
+        <rect x="${HALF+GAP}" y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/>
+      </g>`;
+    }
+
+    // lines: array[6], index 0 = bottom line.
+    // opts: { subordinate, animate }
+    function hexSVG(lines, opts = {}) {
+      const style = opts.subordinate ? ' style="opacity:0.45"' : '';
+      const svgCls = opts.animate ? ' class="anim"' : '';
+      // Render line 0 (bottom) at highest y; line 5 (top) at lowest y
+      const groups = lines.map((v, i) => lineGroup(v, i, null)).join('\n');
+      return `<svg viewBox="0 0 ${W} ${H}"${style}${svgCls}>${groups}</svg>`;
+    }
+
+    function addCell(lines, label, opts = {}) {
+      const cell = document.createElement('div');
+      cell.className = 'cell' + (opts.subordinate ? ' subordinate' : '');
+
+      // For the animated specimen, build the SVG with the .anim class directly
+      if (opts.animate) {
+        const style = opts.subordinate ? ' style="opacity:0.45"' : '';
+        const groups = lines.map((v, i) => lineGroup(v, i)).join('\n');
+        cell.innerHTML = `<svg viewBox="0 0 ${W} ${H}"${style} class="anim">${groups}</svg>
+          <div class="label">${label}</div>`;
+      } else {
+        cell.innerHTML = hexSVG(lines, opts) + `<div class="label">${label}</div>`;
+      }
+
+      document.getElementById('gallery').appendChild(cell);
+    }
+
+    // ── Specimens ────────────────────────────────────────────────────────────
+
+    addCell([null,null,null,null,null,null], 'blank\nuncast');
+    addCell([7,7,7,7,7,7],                 'all yáng\n7 · stable');
+    addCell([8,8,8,8,8,8],                 'all yīn\n8 · stable');
+    addCell([9,9,9,9,9,9],                 'all old yáng\n9 · changing');
+    addCell([6,6,6,6,6,6],                 'all old yīn\n6 · changing');
+    addCell([7,8,7,8,7,8],                 'hex 63 Jì Jì\nalternating');
+    addCell([9,8,7,6,7,9],                 'mixed\nchanging');
+    addCell([7,9,8,null,null,null],        'partial\n3 cast');
+    addCell([7,8,7,7,8,7],                 'subordinate\n(relating hex)', { subordinate: true });
+    addCell([7,8,9,8,7,6],                 'fade-in\n(animated)', { animate: true });
+  </script>
+</body>
+</html>

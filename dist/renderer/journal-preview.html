@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Journal Preview</title>
+  <style>
+    :root {
+      --bg:             #14120f;
+      --surface:        #1e1a16;
+      --text-primary:   #f0ead8;
+      --text-body:      #c8bfaa;
+      --text-secondary: #9a9080;
+      --accent:         #c9a84c;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #screen {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Header ── */
+    #header {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      padding: 24px 32px 20px;
+      border-bottom: 1px solid var(--surface);
+    }
+    #title {
+      font-size: 12px;
+      font-weight: 400;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+    }
+    #count { font-size: 13px; color: var(--text-secondary); }
+    #header-spacer { flex: 1; }
+    #show-hidden-btn {
+      background: transparent; border: none;
+      font-size: 11px; letter-spacing: 0.1em;
+      color: var(--text-secondary); cursor: pointer; padding: 0;
+      transition: color 200ms; display: none;
+    }
+    #show-hidden-btn:hover { color: var(--text-primary); }
+
+    /* ── List ── */
+    #list { overflow-y: auto; }
+
+    .entry { border-bottom: 1px solid var(--surface); }
+
+    .summary {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 20px 32px;
+      cursor: pointer;
+      transition: background 200ms;
+    }
+    .summary:hover { background: rgba(255,255,255,0.02); }
+
+    .e-glyph { width: 28px; flex-shrink: 0; }
+    .e-glyph svg { display: block; width: 100%; height: auto; color: var(--text-primary); }
+
+    .e-meta { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+
+    .e-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 16px;
+    }
+    .e-question {
+      font-size: 16px;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .e-date { font-size: 11px; color: var(--text-secondary); white-space: nowrap; letter-spacing: 0.04em; flex-shrink: 0; }
+    .e-hexname  { font-size: 14px; }
+    .e-relating { font-size: 13px; color: var(--text-secondary); }
+    .e-changing { font-size: 11px; color: var(--text-secondary); letter-spacing: 0.03em; }
+
+    /* ── Expanded body ── */
+    .body { display: none; padding: 0 32px 36px; flex-direction: column; gap: 32px; }
+    .body.open { display: flex; }
+
+    .reading-wrap { border-top: 1px solid var(--surface); padding-top: 28px; display: flex; flex-direction: column; gap: 36px; }
+
+    /* Reading text styles */
+    .r-header { display: flex; align-items: center; gap: 20px; padding-bottom: 28px; border-bottom: 1px solid var(--surface); }
+    .r-num  { font-size: 13px; color: var(--text-secondary); min-width: 24px; }
+    .r-char { font-size: 36px; line-height: 1; }
+    .r-names { display: flex; flex-direction: column; gap: 4px; }
+    .r-py { font-size: 24px; }
+    .r-en { font-size: 13px; color: var(--text-secondary); letter-spacing: 0.06em; }
+    .r-section { display: flex; flex-direction: column; gap: 14px; }
+    .r-sh { font-size: 10px; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-secondary); }
+    .r-verse { font-size: 18px; line-height: 1.85; white-space: pre-line; color: var(--text-primary); }
+    .r-commentary { font-size: 15px; line-height: 1.85; color: var(--text-body); white-space: pre-line; }
+    .r-line { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-left: 2px solid var(--surface); }
+    .r-line.priority { border-left-color: var(--accent); }
+    .r-lpos { font-size: 11px; letter-spacing: 0.1em; color: var(--text-secondary); }
+    .r-relating-section {
+      display: flex; flex-direction: column; gap: 14px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(154, 144, 128, 0.4);
+      margin-top: 16px;
+    }
+    .r-relating-head { font-size: 15px; font-weight: 400; color: var(--text-secondary); }
+
+    /* Notes */
+    .notes-section { display: flex; flex-direction: column; gap: 8px; }
+    .notes-head { font-size: 10px; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-secondary); }
+    .notes-input {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid transparent;
+      color: var(--text-primary);
+      font-size: 14px;
+      line-height: 1.7;
+      padding: 12px 14px;
+      resize: vertical;
+      outline: none;
+      font-family: inherit;
+      transition: border-color 200ms;
+    }
+    .notes-input:focus { border-color: rgba(154,144,128,0.4); }
+    .notes-input::placeholder { color: var(--text-secondary); font-style: italic; }
+    .hide-btn {
+      align-self: flex-start; background: transparent; border: none;
+      font-size: 11px; letter-spacing: 0.08em; color: var(--text-secondary);
+      cursor: pointer; padding: 0; opacity: 0.6; transition: opacity 200ms, color 200ms;
+    }
+    .hide-btn:hover { opacity: 1; color: var(--text-primary); }
+  </style>
+</head>
+<body>
+<div id="screen">
+  <div id="header">
+    <h1 id="title">Journal</h1>
+    <span id="count"></span>
+    <div id="header-spacer"></div>
+    <button id="show-hidden-btn"></button>
+  </div>
+  <div id="list"></div>
+</div>
+
+<script>
+// ── SVG helpers ─────────────────────────────────────────────────────────────
+const W=100,H=150,LH=7,STEP=20,PAD=15;
+const GAP=Math.round(W*0.12), HALF=Math.round((W-GAP)/2);
+function lineMarkup(v,i) {
+  const y=PAD+(5-i)*STEP, ch=v===6||v===9, yang=v===7||v===9;
+  const fill=ch?'var(--accent)':'currentColor';
+  if(v==null) return `<g><rect x="0" y="${y}" width="${W}" height="${LH}" fill="none" stroke="currentColor" stroke-width="0.75" opacity="0.2"/></g>`;
+  if(yang)    return `<g><rect x="0" y="${y}" width="${W}" height="${LH}" fill="${fill}"/></g>`;
+  return `<g><rect x="0" y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/><rect x="${HALF+GAP}" y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/></g>`;
+}
+function svgMarkup(lines) {
+  return `<svg viewBox="0 0 ${W} ${H}">${lines.map((v,i)=>lineMarkup(v,i)).join('')}</svg>`;
+}
+
+// ── Algorithm helpers ───────────────────────────────────────────────────────
+const KING_WEN=[[2,16,8,45,23,35,20,12],[24,51,3,17,27,21,42,25],[7,40,29,47,4,64,59,6],[19,54,60,58,41,38,61,10],[15,62,39,31,52,56,53,33],[36,55,63,49,22,30,37,13],[46,32,48,28,18,50,57,44],[11,34,5,43,26,14,9,1]];
+function hexFromLines(ls){const y=v=>(v===7||v===9)?1:0;return KING_WEN[y(ls[0])|(y(ls[1])<<1)|(y(ls[2])<<2)][y(ls[3])|(y(ls[4])<<1)|(y(ls[5])<<2)];}
+function changingLines(ls){return ls.reduce((a,v,i)=>{if(v===6||v===9)a.push(i+1);return a;},[]); }
+function priorityLine(ls){const ch=changingLines(ls);if(!ch.length||ch.length===6)return null;if(ch.length===1)return ch[0];const n9=ch.filter(p=>ls[p-1]===9),g=n9.length?n9:ch;if(g.length===1)return g[0];switch(g.length){case 2:return g[1];case 3:return g[1];case 4:case 5:return[1,2,3,4,5,6].filter(p=>!g.includes(p))[0];default:return g[0];}}
+
+function changingLabel(lines){const ch=changingLines(lines);if(!ch.length)return'No changing lines';if(ch.length===6)return'All lines changing';return`Line${ch.length>1?'s':''} ${ch.join(', ')} changing`;}
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function fmtDate(iso){const d=new Date(iso);return d.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});}
+
+// ── Reading text renderer ───────────────────────────────────────────────────
+function renderReading(lines, primaryNum, relatingNum, hexagrams) {
+  const p = hexagrams[primaryNum];
+  const r = relatingNum ? hexagrams[relatingNum] : null;
+  const ch = changingLines(lines);
+  const pri = priorityLine(lines);
+  const allCh = ch.length === 6;
+
+  let html = `<div class="r-header">
+    <span class="r-num">${p.number}</span>
+    <span class="r-char">${esc(p.character)}</span>
+    <div class="r-names"><span class="r-py">${esc(p.pinyin)}</span><span class="r-en">${esc(p.english)}</span></div>
+  </div>`;
+  if(p.introduction) html+=`<div class="r-section"><p class="r-commentary">${esc(p.introduction)}</p></div>`;
+  html+=`<div class="r-section"><h2 class="r-sh">The Judgment</h2><p class="r-verse">${esc(p.judgment.verse)}</p>${p.judgment.commentary?`<p class="r-commentary">${esc(p.judgment.commentary)}</p>`:''}</div>`;
+  html+=`<div class="r-section"><h2 class="r-sh">The Image</h2><p class="r-verse">${esc(p.image.verse)}</p>${p.image.commentary?`<p class="r-commentary">${esc(p.image.commentary)}</p>`:''}</div>`;
+  if(!allCh&&ch.length>0){
+    html+=`<div class="r-section"><h2 class="r-sh">The Lines</h2>`;
+    ch.forEach(n=>{const ln=p.lines[n-1];html+=`<div class="r-line${n===pri?' priority':''}"><div class="r-lpos">${esc(ln.position)}</div>${ln.verse?`<p class="r-verse">${esc(ln.verse)}</p>`:''}${ln.commentary?`<p class="r-commentary">${esc(ln.commentary)}</p>`:''}</div>`;});
+    html+=`</div>`;
+  }
+  if(allCh&&p.allNines) html+=`<div class="r-section"><p class="r-commentary">${esc(p.allNines)}</p></div>`;
+  if(allCh&&p.allSixes) html+=`<div class="r-section"><p class="r-commentary">${esc(p.allSixes)}</p></div>`;
+  if(r){html+=`<div class="r-relating-section"><h2 class="r-relating-head">${r.number} · ${esc(r.pinyin)} · ${esc(r.english)}</h2><p class="r-verse">${esc(r.judgment.verse)}</p>${r.judgment.commentary?`<p class="r-commentary">${esc(r.judgment.commentary)}</p>`:''}</div>`;}
+  return html;
+}
+
+// ── Render list ─────────────────────────────────────────────────────────────
+let showHidden = false;
+let allEntries = [];
+
+function render(entries, hexagrams) {
+  allEntries = entries;
+  const visible = entries.filter(e => showHidden || !e.hidden);
+  const hiddenCount = entries.filter(e => e.hidden).length;
+
+  document.getElementById('count').textContent = `${visible.length} reading${visible.length!==1?'s':''}`;
+  const btn = document.getElementById('show-hidden-btn');
+  if (hiddenCount > 0) {
+    btn.style.display = '';
+    btn.textContent = showHidden ? 'hide hidden' : `${hiddenCount} hidden`;
+  } else {
+    btn.style.display = 'none';
+  }
+
+  const list = document.getElementById('list');
+  if (!visible.length) {
+    list.innerHTML = '<p style="padding:56px 32px;font-size:15px;color:var(--text-secondary);text-align:center">No readings saved yet.</p>';
+    return;
+  }
+
+  list.innerHTML = visible.map((e, idx) => {
+    const p = hexagrams[e.cast.primary];
+    const r = e.cast.relating ? hexagrams[e.cast.relating] : null;
+    return `
+    <div class="entry" data-id="${e.id}">
+      <div class="summary">
+        <div class="e-glyph">${svgMarkup(e.cast.lines)}</div>
+        <div class="e-meta">
+          <div class="e-top">
+            <span class="e-question">${esc(e.question||'(no question)')}</span>
+            <span class="e-date">${fmtDate(e.timestamp)}</span>
+          </div>
+          <span class="e-hexname">${p.number} · ${esc(p.pinyin)} · ${esc(p.english)}</span>
+          ${r?`<span class="e-relating">→ ${r.number} · ${esc(r.pinyin)} · ${esc(r.english)}</span>`:''}
+          <span class="e-changing">${changingLabel(e.cast.lines)}</span>
+        </div>
+      </div>
+      <div class="body">
+        <div class="reading-wrap">${renderReading(e.cast.lines, e.cast.primary, e.cast.relating, hexagrams)}</div>
+        <div class="notes-section">
+          <h3 class="notes-head">Notes</h3>
+          <textarea class="notes-input" rows="4" placeholder="Personal notes…">${esc(e.notes||'')}</textarea>
+        </div>
+        <button class="hide-btn" data-id="${e.id}">${e.hidden ? 'unhide this entry' : 'hide this entry'}</button>
+      </div>
+    </div>`;
+  }).join('');
+
+  list.querySelectorAll('.summary').forEach(s => {
+    s.addEventListener('click', () => s.nextElementSibling.classList.toggle('open'));
+  });
+
+  list.querySelectorAll('.hide-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      const entry = allEntries.find(e => e.id === id);
+      if (entry) { entry.hidden = !entry.hidden; render(allEntries, hexagrams); }
+    });
+  });
+}
+
+document.getElementById('show-hidden-btn').addEventListener('click', () => {
+  showHidden = !showHidden;
+  render(allEntries, hexagramsRef);
+});
+
+let hexagramsRef = null;
+
+// ── Seed data for preview ───────────────────────────────────────────────────
+const SEED = [
+  { id:'1', timestamp: new Date(Date.now() - 1000*60*30).toISOString(),
+    question: 'What should I focus on today?',
+    cast: { lines:[9,8,7,6,7,8], primary:0, relating:0 }, notes:'' },
+  { id:'2', timestamp: new Date(Date.now() - 1000*60*60*18).toISOString(),
+    question: 'How to approach the conversation with my colleague?',
+    cast: { lines:[7,8,7,8,7,8], primary:0, relating:0 }, notes:'Felt strongly about this one.' },
+  { id:'3', timestamp: new Date(Date.now() - 1000*60*60*24*3).toISOString(),
+    question: '',
+    cast: { lines:[8,8,8,7,7,8], primary:0, relating:0 }, notes:'' },
+];
+
+fetch('./assets/hexagrams.json')
+  .then(r => r.json())
+  .then(hexagrams => {
+    // Fill in primary and relating numbers from seed lines
+    SEED.forEach(e => {
+      const KING_WEN_=[[2,16,8,45,23,35,20,12],[24,51,3,17,27,21,42,25],[7,40,29,47,4,64,59,6],[19,54,60,58,41,38,61,10],[15,62,39,31,52,56,53,33],[36,55,63,49,22,30,37,13],[46,32,48,28,18,50,57,44],[11,34,5,43,26,14,9,1]];
+      e.cast.primary  = hexFromLines(e.cast.lines);
+      const rl = e.cast.lines.map(v=>v===6?7:v===9?8:v);
+      const changed = e.cast.lines.some(v=>v===6||v===9);
+      e.cast.relating = changed ? hexFromLines(rl) : null;
+    });
+    render(SEED, hexagrams);
+  })
+  .catch(() => {
+    document.getElementById('list').innerHTML =
+      '<p style="padding:24px;color:var(--text-secondary)">Serve via http — python3 -m http.server 8888 in /public</p>';
+  });
+</script>
+</body>
+</html>

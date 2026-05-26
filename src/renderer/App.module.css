@@ -1,0 +1,57 @@
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  background: var(--bg, #14120f);
+  color: var(--text-primary, #f0ead8);
+}
+
+/* ── Top nav ──────────────────────────────────────────────────────────────── */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 28px;
+  border-bottom: 1px solid var(--surface, #1e1a16);
+  flex-shrink: 0;
+}
+
+.logo {
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  font-size: 21px;
+  color: var(--text-secondary, #9a9080);
+  user-select: none;
+  margin-right: 12px;
+  letter-spacing: 0.03em;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary, #9a9080);
+  font-size: 11px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 14px 12px 12px;
+  cursor: pointer;
+  transition: color 200ms, border-color 200ms;
+  margin-bottom: -1px;
+  font-family: inherit;
+}
+
+.tab:hover { color: var(--text-primary, #f0ead8); }
+
+.tabActive {
+  color: var(--text-primary, #f0ead8);
+  border-bottom-color: var(--accent, #c9a84c);
+}
+
+/* ── Module area ──────────────────────────────────────────────────────────── */
+
+.main {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}

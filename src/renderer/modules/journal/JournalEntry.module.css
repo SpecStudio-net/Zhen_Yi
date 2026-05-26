@@ -1,0 +1,175 @@
+.entry {
+  border-bottom: 1px solid var(--surface, #1e1a16);
+}
+
+/* ── Collapsed summary ────────────────────────────────────────────────────── */
+
+.summary {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px 32px;
+  cursor: pointer;
+  transition: background 200ms;
+}
+
+.summary:hover { background: rgba(255, 255, 255, 0.02); }
+
+.glyph {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.meta {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.topRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+}
+
+.question {
+  font-size: 20px;
+  font-family: var(--font-display, 'Cormorant Garamond', serif);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.date {
+  font-size: 11px;
+  color: var(--text-secondary, #9a9080);
+  white-space: nowrap;
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+
+.hexName {
+  font-size: 17px;
+  color: var(--text-primary, #f0ead8);
+}
+
+.relatingName {
+  font-size: 16px;
+  color: var(--text-secondary, #9a9080);
+}
+
+.changingStr {
+  font-size: 11px;
+  color: var(--text-secondary, #9a9080);
+  letter-spacing: 0.03em;
+}
+
+/* ── Expanded body ────────────────────────────────────────────────────────── */
+
+.body {
+  padding: 0 32px 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.readingWrap {
+  border-top: 1px solid var(--surface, #1e1a16);
+  padding-top: 28px;
+}
+
+/* ── Conversation ─────────────────────────────────────────────────────────── */
+
+.conversationSection {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.thread {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.userMsg {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.assistantMsg {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.msgText {
+  font-size: 17px;
+  line-height: 1.6;
+  white-space: pre-line;
+  max-width: 90%;
+}
+
+.userMsg .msgText {
+  color: var(--text-secondary, #9a9080);
+  font-style: italic;
+}
+
+.assistantMsg .msgText {
+  color: var(--text-body, #c8bfaa);
+}
+
+/* ── Notes ────────────────────────────────────────────────────────────────── */
+
+.notesSection {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notesHead {
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--text-secondary, #9a9080);
+}
+
+.notesInput {
+  width: 100%;
+  background: var(--surface, #1e1a16);
+  border: 1px solid transparent;
+  color: var(--text-primary, #f0ead8);
+  font-size: 24px;
+  font-family: inherit;
+  line-height: 1.7;
+  padding: 12px 14px;
+  resize: vertical;
+  outline: none;
+  transition: border-color 200ms;
+}
+
+.notesInput:focus {
+  border-color: rgba(154, 144, 128, 0.4);
+}
+
+.notesInput::placeholder {
+  color: var(--text-secondary, #9a9080);
+  font-style: italic;
+}
+
+.hideBtn {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--text-secondary, #9a9080);
+  cursor: pointer;
+  padding: 0;
+  opacity: 0.6;
+  transition: opacity 200ms, color 200ms;
+}
+.hideBtn:hover { opacity: 1; color: var(--text-primary, #f0ead8); }

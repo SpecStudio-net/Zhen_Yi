@@ -1,0 +1,77 @@
+.screen {
+  display: grid;
+  grid-template-rows: auto 1fr;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg, #14120f);
+  color: var(--text-primary, #f0ead8);
+}
+
+/* ── Nav bar ──────────────────────────────────────────────────────────────── */
+
+.nav {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 24px;
+  border-bottom: 1px solid var(--surface, #1e1a16);
+  flex-shrink: 0;
+}
+
+.tab {
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-secondary, #9a9080);
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 16px 12px 14px;
+  cursor: pointer;
+  transition: color 200ms, border-color 200ms;
+  margin-bottom: -1px;
+}
+
+.tab:hover { color: var(--text-primary, #f0ead8); }
+
+.tabActive {
+  color: var(--text-primary, #f0ead8);
+  border-bottom-color: var(--accent, #c9a84c);
+}
+
+.spacer { flex: 1; }
+
+.jumpInput {
+  background: transparent;
+  border: 1px solid rgba(154, 144, 128, 0.3);
+  color: var(--text-primary, #f0ead8);
+  font-size: 16px;
+  padding: 5px 10px;
+  width: 72px;
+  outline: none;
+  text-align: center;
+  transition: border-color 200ms;
+}
+
+.jumpInput:focus { border-color: var(--text-secondary, #9a9080); }
+.jumpInput::placeholder { color: var(--text-secondary, #9a9080); font-size: 11px; }
+
+.backBtn {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary, #9a9080);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  cursor: pointer;
+  padding: 16px 12px;
+  transition: color 200ms;
+}
+
+.backBtn:hover { color: var(--text-primary, #f0ead8); }
+
+/* ── Content area ─────────────────────────────────────────────────────────── */
+
+.content {
+  overflow: hidden;
+  position: relative;
+}

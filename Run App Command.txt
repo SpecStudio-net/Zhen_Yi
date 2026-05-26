@@ -1,0 +1,2 @@
+cd "/Users/adyasaktisvami/Documents/Zhēn Yì"
+npm run dev

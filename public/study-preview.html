@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Study Module Preview</title>
+  <style>
+    :root {
+      --bg:             #14120f;
+      --surface:        #1e1a16;
+      --text-primary:   #f0ead8;
+      --text-body:      #c8bfaa;
+      --text-secondary: #9a9080;
+      --accent:         #c9a84c;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #screen {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Nav ── */
+    #nav {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--surface);
+      flex-shrink: 0;
+    }
+
+    .tab-btn {
+      background: transparent;
+      border: none;
+      border-bottom: 2px solid transparent;
+      color: var(--text-secondary);
+      font-size: 12px;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 16px 12px 14px;
+      cursor: pointer;
+      transition: color 200ms, border-color 200ms;
+      margin-bottom: -1px;
+    }
+    .tab-btn:hover { color: var(--text-primary); }
+    .tab-btn.active { color: var(--text-primary); border-bottom-color: var(--accent); }
+
+    #spacer { flex: 1; }
+
+    #jump-input {
+      background: transparent;
+      border: 1px solid rgba(154,144,128,0.3);
+      color: var(--text-primary);
+      font-size: 13px;
+      padding: 5px 10px;
+      width: 72px;
+      outline: none;
+      text-align: center;
+    }
+    #jump-input::placeholder { color: var(--text-secondary); font-size: 11px; }
+
+    #back-btn {
+      display: none;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      padding: 16px 12px;
+    }
+    #back-btn:hover { color: var(--text-primary); }
+
+    /* ── Content ── */
+    #content { overflow: hidden; position: relative; height: 100%; }
+
+    .view { display: none; height: 100%; }
+    .view.active { display: block; }
+
+    /* ── Browse ── */
+    #browse-inner {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+      gap: 1px;
+      padding: 16px;
+      height: 100%;
+      overflow-y: auto;
+    }
+
+    .hex-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 12px;
+      cursor: pointer;
+      border-radius: 2px;
+      transition: background 200ms;
+    }
+    .hex-card:hover { background: var(--surface); }
+
+    .card-glyph { width: 32px; flex-shrink: 0; }
+    .card-glyph svg { display: block; width: 100%; height: auto; color: var(--text-primary); }
+
+    .card-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+    .card-num  { font-size: 11px; color: var(--text-secondary); }
+    .card-py   { font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .card-en   { font-size: 11px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* ── Trigram grid ── */
+    #trigram-inner { height: 100%; overflow: auto; padding: 32px 24px; }
+
+    .tg-table { border-collapse: collapse; font-size: 13px; }
+
+    .tg-axis-col {
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-secondary); padding-bottom: 8px; text-align: center;
+    }
+    .tg-axis-row {
+      font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--text-secondary); padding-right: 12px; text-align: right;
+      vertical-align: middle; white-space: nowrap;
+    }
+    .tg-col-head, .tg-row-head {
+      padding: 8px 12px; text-align: center; color: var(--text-secondary);
+      white-space: nowrap; font-weight: 400;
+    }
+    .tg-row-head { text-align: right; padding-right: 16px; }
+    .tg-sym { display: block; font-size: 26px; line-height: 1; color: var(--text-primary); margin-bottom: 4px; }
+    .tg-name { font-size: 14px; }
+
+    .tg-cell { padding: 0; }
+    .tg-cell-btn {
+      display: block; width: 100%; background: transparent; border: none;
+      color: var(--text-primary); font-size: 14px; padding: 10px 16px;
+      cursor: pointer; text-align: center; transition: background 200ms, color 200ms;
+    }
+    .tg-cell-btn:hover { background: var(--surface); color: var(--accent); }
+
+    /* ── Search ── */
+    #search-inner { display: flex; flex-direction: column; height: 100%; overflow: hidden; }
+
+    #search-input-bar {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--surface);
+      flex-shrink: 0;
+    }
+    #search-input {
+      width: 100%; background: transparent; border: none;
+      border-bottom: 1px solid rgba(154,144,128,0.4);
+      color: var(--text-primary); font-size: 16px; padding: 6px 0; outline: none;
+    }
+    #search-input::placeholder { color: var(--text-secondary); }
+
+    #search-results { overflow-y: auto; padding: 16px 24px; display: flex; flex-direction: column; gap: 2px; }
+
+    .s-empty { font-size: 14px; color: var(--text-secondary); padding: 24px 0; text-align: center; }
+
+    .s-result {
+      display: flex; align-items: flex-start; padding: 12px 16px;
+      cursor: pointer; border-radius: 2px; transition: background 200ms;
+    }
+    .s-result:hover { background: var(--surface); }
+    .s-meta {
+      flex-shrink: 0; display: flex; flex-direction: column; align-items: flex-start;
+      gap: 2px; width: 160px; padding-right: 20px;
+      border-right: 1px solid var(--surface);
+    }
+    .s-num { font-size: 11px; color: var(--text-secondary); }
+    .s-py  { font-size: 15px; }
+    .s-en  { font-size: 11px; color: var(--text-secondary); }
+    .s-snippet { font-size: 13px; color: var(--text-body); line-height: 1.6; flex: 1; padding-left: 20px; }
+    .s-snippet mark { background: transparent; color: var(--accent); font-weight: 600; }
+
+    /* ── Hexagram detail ── */
+    #detail-view {
+      display: none;
+      grid-template-columns: 220px 1fr;
+      height: 100%;
+    }
+    #detail-view.active { display: grid; }
+
+    #detail-glyph {
+      display: flex; align-items: flex-start; justify-content: center;
+      padding: 44px 28px; border-right: 1px solid var(--surface);
+    }
+    #detail-glyph-svg-wrap { width: 100%; }
+    #detail-glyph-svg-wrap svg { display: block; width: 100%; height: auto; color: var(--text-primary); }
+
+    #detail-text { overflow-y: auto; padding: 44px 52px; display: flex; flex-direction: column; gap: 36px; }
+
+    .d-header { display: flex; align-items: center; gap: 20px; padding-bottom: 28px; border-bottom: 1px solid var(--surface); }
+    .d-num   { font-size: 13px; color: var(--text-secondary); min-width: 24px; }
+    .d-char  { font-size: 36px; line-height: 1; }
+    .d-names { display: flex; flex-direction: column; gap: 4px; }
+    .d-py    { font-size: 24px; }
+    .d-en    { font-size: 13px; color: var(--text-secondary); letter-spacing: 0.06em; }
+
+    .d-section { display: flex; flex-direction: column; gap: 14px; }
+    .d-sh { font-size: 10px; font-weight: 400; letter-spacing: 0.18em; text-transform: uppercase; color: var(--text-secondary); }
+    .d-intro { font-size: 15px; line-height: 1.75; color: var(--text-secondary); }
+    .d-verse { font-size: 18px; line-height: 1.85; white-space: pre-line; color: var(--text-primary); }
+    .d-commentary { font-size: 15px; line-height: 1.85; color: var(--text-body); white-space: pre-line; }
+    .d-line { display: flex; flex-direction: column; gap: 10px; padding: 16px 20px; border-left: 2px solid var(--surface); }
+    .d-lpos { font-size: 11px; letter-spacing: 0.1em; color: var(--text-secondary); }
+  </style>
+</head>
+<body>
+<div id="screen">
+  <div id="nav">
+    <button class="tab-btn active" data-tab="browse">Browse</button>
+    <button class="tab-btn"        data-tab="trigram">Trigram Grid</button>
+    <button class="tab-btn"        data-tab="search">Search</button>
+    <button id="back-btn">← back</button>
+    <div id="spacer"></div>
+    <input id="jump-input" type="number" min="1" max="64" placeholder="1–64">
+  </div>
+  <div id="content">
+    <div id="view-browse"  class="view active"><div id="browse-inner"></div></div>
+    <div id="view-trigram" class="view"><div id="trigram-inner"></div></div>
+    <div id="view-search"  class="view">
+      <div id="search-inner">
+        <div id="search-input-bar">
+          <input id="search-input" type="text" placeholder="Search judgments, images, line texts…">
+        </div>
+        <div id="search-results"></div>
+      </div>
+    </div>
+    <div id="detail-view">
+      <div id="detail-glyph"><div id="detail-glyph-svg-wrap"></div></div>
+      <div id="detail-text"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Data ───────────────────────────────────────────────────────────────────
+const TRIGRAMS = [
+  { index:0, pinyin:'Kūn',  symbol:'☷', lines:[8,8,8] },
+  { index:1, pinyin:'Zhèn', symbol:'☳', lines:[7,8,8] },
+  { index:2, pinyin:'Kǎn',  symbol:'☵', lines:[8,7,8] },
+  { index:3, pinyin:'Duì',  symbol:'☱', lines:[7,7,8] },
+  { index:4, pinyin:'Gèn',  symbol:'☶', lines:[8,8,7] },
+  { index:5, pinyin:'Lí',   symbol:'☲', lines:[7,8,7] },
+  { index:6, pinyin:'Xùn',  symbol:'☴', lines:[8,7,7] },
+  { index:7, pinyin:'Qián', symbol:'☰', lines:[7,7,7] },
+];
+
+const KING_WEN = [
+  [ 2,16, 8,45,23,35,20,12],
+  [24,51, 3,17,27,21,42,25],
+  [ 7,40,29,47, 4,64,59, 6],
+  [19,54,60,58,41,38,61,10],
+  [15,62,39,31,52,56,53,33],
+  [36,55,63,49,22,30,37,13],
+  [46,32,48,28,18,50,57,44],
+  [11,34, 5,43,26,14, 9, 1],
+];
+
+let hexagrams = null;
+
+function hexLineValues(n) {
+  const h = hexagrams[n];
+  const f = name => (TRIGRAMS.find(t => t.pinyin === name) || TRIGRAMS[0]).lines;
+  return [...f(h.trigrams.below), ...f(h.trigrams.above)];
+}
+
+// ── SVG ────────────────────────────────────────────────────────────────────
+const W=100, H=150, LH=7, STEP=20, PAD=15;
+const GAP=Math.round(W*0.12), HALF=Math.round((W-GAP)/2);
+
+function lineMarkup(v, i) {
+  const y = PAD + (5-i)*STEP;
+  const ch = v===6||v===9, yang = v===7||v===9, blank = v==null;
+  const fill = ch ? 'var(--accent)' : 'currentColor';
+  if (blank) return `<g><rect x="0" y="${y}" width="${W}" height="${LH}" fill="none" stroke="currentColor" stroke-width="0.75" opacity="0.2"/></g>`;
+  if (yang)  return `<g><rect x="0" y="${y}" width="${W}" height="${LH}" fill="${fill}"/></g>`;
+  return `<g><rect x="0" y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/><rect x="${HALF+GAP}" y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/></g>`;
+}
+
+function svgMarkup(lines) {
+  return `<svg viewBox="0 0 ${W} ${H}">${lines.map((v,i)=>lineMarkup(v,i)).join('')}</svg>`;
+}
+
+// ── Escape ─────────────────────────────────────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// ── Browse ─────────────────────────────────────────────────────────────────
+function buildBrowse() {
+  const el = document.getElementById('browse-inner');
+  el.innerHTML = Array.from({length:64},(_,i)=>i+1).map(n => {
+    const h = hexagrams[n];
+    return `<div class="hex-card" data-n="${n}">
+      <div class="card-glyph">${svgMarkup(hexLineValues(n))}</div>
+      <div class="card-meta">
+        <span class="card-num">${n}</span>
+        <span class="card-py">${esc(h.pinyin)}</span>
+        <span class="card-en">${esc(h.english)}</span>
+      </div>
+    </div>`;
+  }).join('');
+  el.querySelectorAll('.hex-card').forEach(card => {
+    card.addEventListener('click', () => openDetail(+card.dataset.n));
+  });
+}
+
+// ── Trigram grid ───────────────────────────────────────────────────────────
+function buildTrigramGrid() {
+  const el = document.getElementById('trigram-inner');
+  let html = `<table class="tg-table"><thead><tr>
+    <td></td>
+    <td class="tg-axis-row"></td>
+    ${TRIGRAMS.map(t=>`<th class="tg-col-head"><span class="tg-sym">${t.symbol}</span><span class="tg-name">${esc(t.pinyin)}</span></th>`).join('')}
+  </tr></thead><tbody>`;
+  TRIGRAMS.forEach((lower,li) => {
+    html += `<tr>
+      <td class="tg-axis-row">${li===0?'lower ↓':''}</td>
+      <th class="tg-row-head"><span class="tg-sym">${lower.symbol}</span><span class="tg-name">${esc(lower.pinyin)}</span></th>
+      ${TRIGRAMS.map(upper => {
+        const n = KING_WEN[lower.index][upper.index];
+        const h = hexagrams[n];
+        return `<td class="tg-cell"><button class="tg-cell-btn" data-n="${n}" title="${n}. ${esc(h.pinyin)} / ${esc(h.english)}">${n}</button></td>`;
+      }).join('')}
+    </tr>`;
+  });
+  html += `</tbody></table>`;
+  el.innerHTML = html;
+  el.querySelectorAll('.tg-cell-btn').forEach(btn => {
+    btn.addEventListener('click', () => openDetail(+btn.dataset.n));
+  });
+}
+
+// ── Search ─────────────────────────────────────────────────────────────────
+function textFields(h) {
+  return [h.judgment.verse, h.judgment.commentary, h.image.verse, h.image.commentary,
+    ...h.lines.flatMap(l=>[l.verse,l.commentary]), h.introduction].filter(Boolean);
+}
+
+function findSnippet(h, q) {
+  const ql = q.toLowerCase();
+  for (const text of textFields(h)) {
+    const idx = text.toLowerCase().indexOf(ql);
+    if (idx === -1) continue;
+    const s = Math.max(0, idx-60), e = Math.min(text.length, idx+q.length+60);
+    return {
+      before: (s>0?'…':'')+esc(text.slice(s,idx)),
+      match:  esc(text.slice(idx, idx+q.length)),
+      after:  esc(text.slice(idx+q.length,e))+(e<text.length?'…':''),
+    };
+  }
+  return null;
+}
+
+function runSearch(q) {
+  const el = document.getElementById('search-results');
+  if (q.length < 2) { el.innerHTML = ''; return; }
+  const results = [];
+  for (let n=1; n<=64; n++) {
+    const h = hexagrams[n];
+    const nameHit = h.pinyin.toLowerCase().includes(q.toLowerCase())
+                 || h.english.toLowerCase().includes(q.toLowerCase());
+    const snippet = nameHit ? null : findSnippet(h, q);
+    if (nameHit || snippet) results.push({n, h, snippet});
+  }
+  if (!results.length) { el.innerHTML = '<p class="s-empty">No matches</p>'; return; }
+  el.innerHTML = results.map(({n,h,snippet}) => `
+    <div class="s-result" data-n="${n}">
+      <div class="s-meta">
+        <span class="s-num">${n}</span>
+        <span class="s-py">${esc(h.pinyin)}</span>
+        <span class="s-en">${esc(h.english)}</span>
+      </div>
+      ${snippet ? `<p class="s-snippet">${snippet.before}<mark>${snippet.match}</mark>${snippet.after}</p>` : ''}
+    </div>`).join('');
+  el.querySelectorAll('.s-result').forEach(r => {
+    r.addEventListener('click', () => openDetail(+r.dataset.n));
+  });
+}
+
+// ── Detail view ────────────────────────────────────────────────────────────
+function openDetail(n) {
+  history.pushState({ hexagram: n }, '');
+  const h = hexagrams[n];
+  const lines = hexLineValues(n);
+
+  document.getElementById('detail-glyph-svg-wrap').innerHTML = svgMarkup(lines);
+
+  let html = `<div class="d-header">
+    <span class="d-num">${n}</span>
+    <span class="d-char">${esc(h.character)}</span>
+    <div class="d-names"><span class="d-py">${esc(h.pinyin)}</span><span class="d-en">${esc(h.english)}</span></div>
+  </div>`;
+
+  if (h.introduction) html += `<p class="d-intro">${esc(h.introduction)}</p>`;
+
+  html += `<div class="d-section"><h2 class="d-sh">The Judgment</h2>
+    <p class="d-verse">${esc(h.judgment.verse)}</p>
+    ${h.judgment.commentary?`<p class="d-commentary">${esc(h.judgment.commentary)}</p>`:''}
+  </div>`;
+
+  html += `<div class="d-section"><h2 class="d-sh">The Image</h2>
+    <p class="d-verse">${esc(h.image.verse)}</p>
+    ${h.image.commentary?`<p class="d-commentary">${esc(h.image.commentary)}</p>`:''}
+  </div>`;
+
+  html += `<div class="d-section"><h2 class="d-sh">The Lines</h2>`;
+  h.lines.forEach(line => {
+    html += `<div class="d-line">
+      <div class="d-lpos">${esc(line.position)}</div>
+      ${line.verse?`<p class="d-verse">${esc(line.verse)}</p>`:''}
+      ${line.commentary?`<p class="d-commentary">${esc(line.commentary)}</p>`:''}
+    </div>`;
+  });
+  html += `</div>`;
+
+  document.getElementById('detail-text').innerHTML = html;
+  document.getElementById('detail-text').scrollTop = 0;
+
+  // Show detail, hide tabs
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('detail-view').classList.add('active');
+  document.querySelectorAll('.tab-btn').forEach(b => b.style.display = 'none');
+  document.getElementById('back-btn').style.display = '';
+}
+
+function goBack() {
+  document.getElementById('detail-view').classList.remove('active');
+  document.querySelectorAll('.view').forEach(v => {
+    if (v.id === 'view-' + currentTab) v.classList.add('active');
+  });
+  document.querySelectorAll('.tab-btn').forEach(b => b.style.display = '');
+  document.getElementById('back-btn').style.display = 'none';
+}
+
+// ── Tab switching ──────────────────────────────────────────────────────────
+let currentTab = 'browse';
+
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    currentTab = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.toggle('active', b===btn));
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('active', v.id==='view-'+currentTab));
+    if (currentTab === 'search') document.getElementById('search-input').focus();
+  });
+});
+
+document.getElementById('back-btn').addEventListener('click', () => history.back());
+window.addEventListener('popstate', goBack);
+
+document.getElementById('jump-input').addEventListener('keydown', e => {
+  if (e.key === 'Enter') {
+    const n = parseInt(e.target.value, 10);
+    if (n >= 1 && n <= 64) { openDetail(n); e.target.value = ''; }
+  }
+});
+
+document.getElementById('search-input').addEventListener('input', e => {
+  runSearch(e.target.value.trim());
+});
+
+// ── Init ───────────────────────────────────────────────────────────────────
+fetch('./assets/hexagrams.json')
+  .then(r => r.json())
+  .then(data => {
+    hexagrams = data;
+    buildBrowse();
+    buildTrigramGrid();
+  })
+  .catch(() => {
+    document.getElementById('browse-inner').innerHTML =
+      '<p style="color:var(--text-secondary);padding:24px">Serve via http — run: python3 -m http.server 8888 in /public, then open http://localhost:8888/study-preview.html</p>';
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Casting Module Preview</title>
+  <style>
+    :root {
+      --bg:             #14120f;
+      --surface:        #1e1a16;
+      --text-primary:   #f0ead8;
+      --text-body:      #c8bfaa;
+      --text-secondary: #9a9080;
+      --accent:         #c9a84c;
+      --accent-faint:   rgba(201, 168, 76, 0.18);
+    }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes lineFade { from { opacity: 0; } to { opacity: 1; } }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text-primary);
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── Layout ── */
+    #screen {
+      display: grid;
+      grid-template-rows: auto 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    #query-bar {
+      padding: 22px 40px;
+      border-bottom: 1px solid var(--surface);
+    }
+
+    #query-form { width: 100%; }
+
+    #query-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid rgba(154,144,128,0.5);
+      color: var(--text-primary);
+      font-size: 18px;
+      font-style: italic;
+      padding: 6px 0;
+      outline: none;
+    }
+
+    #query-input::placeholder { color: var(--text-secondary); }
+
+    #query-locked {
+      font-size: 18px;
+      padding: 6px 0;
+      opacity: 0.75;
+      display: none;
+    }
+
+    #panels {
+      display: grid;
+      grid-template-columns: 260px 1fr;
+      overflow: hidden;
+    }
+
+    /* ── Left panel ── */
+    #hex-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 32px;
+      gap: 28px;
+      border-right: 1px solid var(--surface);
+    }
+
+    #watermark {
+      font-size: 80px;
+      line-height: 1;
+      color: var(--accent-faint);
+      user-select: none;
+      animation: fadeIn 300ms ease-out both;
+    }
+
+    #primary-glyph { width: 100%; display: none; }
+    #primary-glyph svg { display: block; width: 100%; height: auto; color: var(--text-primary); }
+    #primary-glyph svg g { animation: lineFade 300ms ease-out both; }
+
+    #cast-btn {
+      display: none;
+      background: transparent;
+      border: 1px solid rgba(154,144,128,0.6);
+      color: var(--text-secondary);
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      padding: 10px 28px;
+      cursor: pointer;
+      transition: border-color 300ms, color 300ms;
+    }
+    #cast-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    #moving-to {
+      display: none;
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    #relating-glyph {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      width: 72%;
+    }
+    #relating-glyph svg { display: block; width: 100%; height: auto; color: var(--text-primary); opacity: 0.45; }
+
+    #relating-name {
+      font-size: 12px;
+      color: var(--text-secondary);
+      text-align: center;
+      line-height: 1.5;
+    }
+
+    /* ── Right panel ── */
+    #reading-area {
+      display: none;
+      grid-template-rows: 1fr auto;
+      overflow: hidden;
+    }
+
+    #reading-scroll {
+      overflow-y: auto;
+      padding: 44px 52px;
+    }
+
+    /* ── LLM panel ── */
+    #llm-panel {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(154,144,128,0.25);
+    }
+
+    #llm-thread {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .llm-user {
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .llm-assistant {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 8px;
+    }
+
+    .llm-msg {
+      font-size: 15px;
+      line-height: 1.8;
+      white-space: pre-line;
+      max-width: 90%;
+    }
+
+    .llm-user .llm-msg     { color: var(--text-secondary); font-style: italic; }
+    .llm-assistant .llm-msg { color: var(--text-body); }
+
+    .llm-copy {
+      background: transparent; border: none;
+      font-size: 11px; letter-spacing: 0.08em;
+      color: var(--text-secondary); cursor: pointer; padding: 0;
+      transition: color 200ms;
+    }
+    .llm-copy:hover { color: var(--accent); }
+
+    .llm-cursor {
+      display: inline-block;
+      color: var(--accent);
+      animation: blink 900ms step-end infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+    #llm-form {
+      position: sticky;
+      bottom: 0;
+      background: var(--bg);
+      padding-bottom: 4px;
+    }
+
+    #llm-input {
+      width: 100%;
+      background: transparent; border: none;
+      border-bottom: 1px solid rgba(154,144,128,0.3);
+      color: var(--text-primary); font-size: 15px;
+      padding: 8px 0; outline: none;
+      transition: border-color 200ms;
+    }
+    #llm-input:focus { border-bottom-color: var(--text-secondary); }
+    #llm-input::placeholder { color: var(--text-secondary); font-style: italic; }
+    #llm-input:disabled { opacity: 0.4; }
+
+    /* ── Save bar ── */
+    #save-bar {
+      padding: 14px 52px;
+      border-top: 1px solid var(--surface);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    #save-bar button {
+      background: transparent;
+      border: 1px solid rgba(154,144,128,0.4);
+      color: var(--text-secondary);
+      font-size: 11px; letter-spacing: 0.15em;
+      text-transform: uppercase;
+      padding: 8px 20px; cursor: pointer;
+      transition: border-color 200ms, color 200ms;
+      white-space: nowrap;
+    }
+    #save-bar button:hover { border-color: var(--accent); color: var(--accent); }
+
+    #save-notes {
+      flex: 1; min-width: 180px;
+      background: var(--surface); border: 1px solid transparent;
+      color: var(--text-primary); font-size: 14px; line-height: 1.6;
+      padding: 8px 12px; outline: none; font-family: inherit; resize: none;
+      transition: border-color 200ms;
+    }
+    #save-notes:focus { border-color: rgba(154,144,128,0.4); }
+    #save-notes::placeholder { color: var(--text-secondary); font-style: italic; }
+    /* ── end save bar ── */
+
+    .r-header {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding-bottom: 28px;
+      border-bottom: 1px solid var(--surface);
+      margin-bottom: 36px;
+    }
+    .r-number { font-size: 13px; color: var(--text-secondary); min-width: 24px; }
+    .r-char   { font-size: 36px; line-height: 1; }
+    .r-names  { display: flex; flex-direction: column; gap: 4px; }
+    .r-pinyin { font-size: 24px; }
+    .r-en     { font-size: 13px; color: var(--text-secondary); letter-spacing: 0.06em; }
+
+    .r-section { display: flex; flex-direction: column; gap: 14px; margin-bottom: 36px; }
+
+    .r-section-head {
+      font-size: 10px;
+      font-weight: 400;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--text-secondary);
+    }
+
+    .r-intro { font-size: 15px; line-height: 1.75; color: var(--text-secondary); }
+
+    .r-verse {
+      font-size: 18px;
+      line-height: 1.85;
+      white-space: pre-line;
+      color: var(--text-primary);
+    }
+
+    .r-commentary {
+      font-size: 15px;
+      line-height: 1.85;
+      color: var(--text-body);
+      white-space: pre-line;
+    }
+
+    .r-line {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      padding: 16px 20px;
+      border-left: 2px solid var(--surface);
+      margin-bottom: 8px;
+    }
+
+    .r-line.priority { border-left-color: var(--accent); }
+
+    .r-line-pos {
+      font-size: 11px;
+      letter-spacing: 0.1em;
+      color: var(--text-secondary);
+    }
+
+    .r-relating {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-top: 32px;
+      border-top: 1px solid rgba(154, 144, 128, 0.4);
+      margin-top: 24px;
+    }
+
+    .r-relating-head {
+      font-size: 15px;
+      font-weight: 400;
+      color: var(--text-secondary);
+    }
+  </style>
+</head>
+<body>
+<div id="screen">
+  <div id="query-bar">
+    <form id="query-form">
+      <input id="query-input" type="text" placeholder="Enter your question or intention" autocomplete="off" autofocus />
+    </form>
+    <div id="query-locked"></div>
+  </div>
+  <div id="panels">
+    <div id="hex-panel">
+      <div id="watermark">易經</div>
+      <div id="primary-glyph"></div>
+      <button id="cast-btn">Cast</button>
+      <div id="moving-to">moving to</div>
+      <div id="relating-glyph">
+        <svg id="relating-svg" viewBox="0 0 100 150"></svg>
+        <div id="relating-name"></div>
+      </div>
+    </div>
+    <div id="reading-area">
+      <div id="reading-scroll">
+        <div id="reading-content"></div>
+        <div id="llm-panel">
+          <div id="llm-thread"></div>
+          <form id="llm-form">
+            <input id="llm-input" type="text" placeholder="Ask about this reading…" autocomplete="off" />
+          </form>
+        </div>
+      </div>
+      <div id="save-bar"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Constants ──────────────────────────────────────────────────────────────
+const W = 100, H = 150, LH = 7, STEP = 20, PAD = 15;
+const GAP = Math.round(W * 0.12), HALF = Math.round((W - GAP) / 2);
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// ── State ──────────────────────────────────────────────────────────────────
+let hexagrams = null;
+let lines = Array(6).fill(null);
+let nextCast = 0;
+
+// ── Algorithm ──────────────────────────────────────────────────────────────
+function castLine() {
+  const v = Date.now() % 16;
+  if (v === 0)             return 6;
+  if (v >= 1 && v <= 5)   return 7;
+  if (v >= 6 && v <= 12)  return 8;
+  return 9;
+}
+
+const KING_WEN = [
+  [ 2,16, 8,45,23,35,20,12],
+  [24,51, 3,17,27,21,42,25],
+  [ 7,40,29,47, 4,64,59, 6],
+  [19,54,60,58,41,38,61,10],
+  [15,62,39,31,52,56,53,33],
+  [36,55,63,49,22,30,37,13],
+  [46,32,48,28,18,50,57,44],
+  [11,34, 5,43,26,14, 9, 1],
+];
+
+function hexFromLines(ls) {
+  const y = v => (v === 7 || v === 9) ? 1 : 0;
+  const lo = y(ls[0]) | (y(ls[1])<<1) | (y(ls[2])<<2);
+  const hi = y(ls[3]) | (y(ls[4])<<1) | (y(ls[5])<<2);
+  return KING_WEN[lo][hi];
+}
+
+function relatingHex(ls) {
+  if (!ls.some(v => v===6||v===9)) return null;
+  return hexFromLines(ls.map(v => v===6?7 : v===9?8 : v));
+}
+
+function changingLines(ls) {
+  return ls.reduce((a,v,i) => { if (v===6||v===9) a.push(i+1); return a; }, []);
+}
+
+function priorityLine(ls) {
+  const ch = changingLines(ls);
+  if (ch.length === 0 || ch.length === 6) return null;
+  if (ch.length === 1) return ch[0];
+  const nines = ch.filter(p => ls[p-1] === 9);
+  const grp = nines.length > 0 ? nines : ch;
+  if (grp.length === 1) return grp[0];
+  switch (grp.length) {
+    case 2: return grp[1];
+    case 3: return grp[1];
+    case 4: case 5: return [1,2,3,4,5,6].filter(p => !grp.includes(p))[0];
+    default: return grp[0];
+  }
+}
+
+// ── SVG glyph ──────────────────────────────────────────────────────────────
+function lineMarkup(value, i) {
+  const y = PAD + (5 - i) * STEP;
+  const changing = value===6||value===9, isYang = value===7||value===9;
+  const blank = value == null;
+  const fill = changing ? 'var(--accent)' : 'currentColor';
+  if (blank) return `<g><rect x="0" y="${y}" width="${W}" height="${LH}" fill="none" stroke="currentColor" stroke-width="0.75" opacity="0.2"/></g>`;
+  if (isYang) return `<g><rect x="0" y="${y}" width="${W}" height="${LH}" fill="${fill}"/></g>`;
+  return `<g><rect x="0" y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/><rect x="${HALF+GAP}" y="${y}" width="${HALF}" height="${LH}" fill="${fill}"/></g>`;
+}
+
+function buildSVG(ls) {
+  return `<svg viewBox="0 0 ${W} ${H}" style="display:block;width:100%;height:auto;color:var(--text-primary)">${ls.map((v,i) => lineMarkup(v,i)).join('')}</svg>`;
+}
+
+// ── Reading text ───────────────────────────────────────────────────────────
+function esc(s) {
+  if (!s) return '';
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function buildReading() {
+  const pn   = hexFromLines(lines);
+  const rn   = relatingHex(lines);
+  const p    = hexagrams[pn];
+  const r    = rn ? hexagrams[rn] : null;
+  const ch   = changingLines(lines);
+  const pri  = priorityLine(lines);
+  const allCh = ch.length === 6;
+
+  let html = `
+    <div class="r-header">
+      <span class="r-number">${p.number}</span>
+      <span class="r-char">${esc(p.character)}</span>
+      <div class="r-names">
+        <span class="r-pinyin">${esc(p.pinyin)}</span>
+        <span class="r-en">${esc(p.english)}</span>
+      </div>
+    </div>`;
+
+  if (p.introduction) {
+    html += `<div class="r-section"><p class="r-intro">${esc(p.introduction)}</p></div>`;
+  }
+
+  html += `<div class="r-section">
+    <h2 class="r-section-head">The Judgment</h2>
+    <p class="r-verse">${esc(p.judgment.verse)}</p>
+    ${p.judgment.commentary ? `<p class="r-commentary">${esc(p.judgment.commentary)}</p>` : ''}
+  </div>`;
+
+  html += `<div class="r-section">
+    <h2 class="r-section-head">The Image</h2>
+    <p class="r-verse">${esc(p.image.verse)}</p>
+    ${p.image.commentary ? `<p class="r-commentary">${esc(p.image.commentary)}</p>` : ''}
+  </div>`;
+
+  if (!allCh && ch.length > 0) {
+    html += `<div class="r-section"><h2 class="r-section-head">The Lines</h2>`;
+    for (const n of ch) {
+      const ln = p.lines[n-1];
+      html += `<div class="r-line${n===pri?' priority':''}">
+        <div class="r-line-pos">${esc(ln.position)}</div>
+        ${ln.verse ? `<p class="r-verse">${esc(ln.verse)}</p>` : ''}
+        ${ln.commentary ? `<p class="r-commentary">${esc(ln.commentary)}</p>` : ''}
+      </div>`;
+    }
+    html += `</div>`;
+  }
+
+  if (allCh && p.allNines) html += `<div class="r-section"><p class="r-commentary">${esc(p.allNines)}</p></div>`;
+  if (allCh && p.allSixes) html += `<div class="r-section"><p class="r-commentary">${esc(p.allSixes)}</p></div>`;
+
+  if (r) {
+    html += `<div class="r-relating">
+      <h2 class="r-relating-head">${r.number} · ${esc(r.pinyin)} · ${esc(r.english)}</h2>
+      <p class="r-verse">${esc(r.judgment.verse)}</p>
+      ${r.judgment.commentary ? `<p class="r-commentary">${esc(r.judgment.commentary)}</p>` : ''}
+    </div>`;
+  }
+
+  return html;
+}
+
+// ── DOM updates ────────────────────────────────────────────────────────────
+function show(id)  { document.getElementById(id).style.display = ''; }
+function hide(id)  { document.getElementById(id).style.display = 'none'; }
+function flex(id)  { document.getElementById(id).style.display = 'flex'; }
+function block(id) { document.getElementById(id).style.display = 'block'; }
+
+function updateGlyph() {
+  const el = document.getElementById('primary-glyph');
+  el.innerHTML = buildSVG(lines);
+}
+
+// Transition: idle → casting
+function startCasting() {
+  const q = document.getElementById('query-input').value.trim();
+  if (!q) return;
+  document.getElementById('query-locked').textContent = q;
+  block('query-locked');
+  hide('query-form');
+  hide('watermark');
+  block('primary-glyph');
+  updateGlyph();
+  block('cast-btn');
+}
+
+// Each click of Cast
+function handleCast() {
+  lines[nextCast] = castLine();
+  nextCast++;
+  updateGlyph();
+
+  if (nextCast === 6) {
+    hide('cast-btn');
+    showReading();
+  }
+}
+
+function showReading() {
+  const rn = relatingHex(lines);
+  if (rn) {
+    const r = hexagrams[rn];
+    const rl = lines.map(v => v===6?7 : v===9?8 : v);
+    document.getElementById('relating-svg').innerHTML = rl.map((v,i) => lineMarkup(v,i)).join('');
+    document.getElementById('relating-name').innerHTML = `${esc(r.pinyin)}<br>${esc(r.english)}`;
+    show('moving-to');
+    flex('relating-glyph');
+  }
+  document.getElementById('reading-content').innerHTML = buildReading();
+  document.getElementById('reading-area').style.display = 'grid';
+  buildSaveBar();
+}
+
+// ── Save bar ───────────────────────────────────────────────────────────────
+let notesValue = '';
+
+function buildSaveBar(open = false) {
+  const bar = document.getElementById('save-bar');
+  if (open) {
+    bar.innerHTML = `
+      <textarea id="save-notes" placeholder="Notes (optional)" rows="2">${esc(notesValue)}</textarea>
+      <button id="save-confirm-btn">Save</button>
+      <button id="save-cancel-btn">Cancel</button>`;
+    bar.querySelector('#save-notes').addEventListener('input', e => notesValue = e.target.value);
+    bar.querySelector('#save-confirm-btn').addEventListener('click', doSave);
+    bar.querySelector('#save-cancel-btn').addEventListener('click', () => buildSaveBar(false));
+    bar.querySelector('#save-notes').focus();
+  } else {
+    bar.innerHTML = `<button id="save-btn">Save reading</button>`;
+    bar.querySelector('#save-btn').addEventListener('click', () => buildSaveBar(true));
+  }
+}
+
+function doSave() {
+  const pn = hexFromLines(lines), rn = relatingHex(lines);
+  const entry = {
+    id: crypto.randomUUID(), timestamp: new Date().toISOString(),
+    question: document.getElementById('query-locked').textContent,
+    cast: { lines: [...lines], primary: pn, relating: rn }, notes: notesValue,
+  };
+  const journal = JSON.parse(localStorage.getItem('zhenyi_journal') || '{"readings":[]}');
+  journal.readings.unshift(entry);
+  localStorage.setItem('zhenyi_journal', JSON.stringify(journal));
+  // Reset
+  lines = Array(6).fill(null); nextCast = 0; notesValue = '';
+  document.getElementById('reading-area').style.display = 'none';
+  document.getElementById('reading-content').innerHTML = '';
+  document.getElementById('llm-thread').innerHTML = '';
+  hide('moving-to'); hide('relating-glyph'); hide('primary-glyph');
+  document.getElementById('query-locked').style.display = 'none';
+  document.getElementById('query-form').style.display = '';
+  document.getElementById('query-input').value = '';
+  show('watermark');
+  document.getElementById('query-input').focus();
+}
+
+// ── LLM mock ───────────────────────────────────────────────────────────────
+const MOCK = `The hexagram speaks directly to your situation.\n\nThe judgment's emphasis on perseverance points toward sustained engagement rather than a single decisive act. This is not a moment for forcing resolution — the image suggests working with what is already moving rather than against it.\n\nThe changing lines are the most specific address to your question. The position you're in now is the ground condition; where you're moving is the horizon. The question to sit with is whether the movement described feels like something being lost or something being clarified.\n\nWhat draws your attention most — the judgment itself, or one of the specific lines?`;
+
+async function* mockStream() {
+  await new Promise(r => setTimeout(r, 700));
+  const tokens = MOCK.split(/(?<=\s)/);
+  for (const t of tokens) { yield t; await new Promise(r => setTimeout(r, 38 + Math.random()*30)); }
+}
+
+let llmStreaming = false;
+
+async function handleLLMSubmit(e) {
+  e.preventDefault();
+  const input = document.getElementById('llm-input');
+  const q = input.value.trim();
+  if (!q || llmStreaming) return;
+  input.value = '';
+  input.disabled = true;
+  llmStreaming = true;
+
+  const thread = document.getElementById('llm-thread');
+  thread.insertAdjacentHTML('beforeend',
+    `<div class="llm-user"><p class="llm-msg">${esc(q)}</p></div>`);
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'llm-assistant';
+  const p = document.createElement('p');
+  p.className = 'llm-msg';
+  msgDiv.appendChild(p);
+  thread.appendChild(msgDiv);
+  p.scrollIntoView({ behavior: 'smooth' });
+
+  let full = '';
+  for await (const chunk of mockStream()) {
+    full += chunk;
+    p.innerHTML = esc(full) + '<span class="llm-cursor">▋</span>';
+    p.scrollIntoView({ behavior: 'smooth' });
+  }
+  p.textContent = full;
+  const copyBtn = document.createElement('button');
+  copyBtn.className = 'llm-copy';
+  copyBtn.textContent = 'copy to notes';
+  copyBtn.addEventListener('click', () => {
+    notesValue = notesValue ? notesValue + '\n\n' + full : full;
+    buildSaveBar(true);
+  });
+  msgDiv.appendChild(copyBtn);
+
+  llmStreaming = false;
+  input.disabled = false;
+  input.placeholder = 'Ask another question…';
+  input.focus();
+}
+
+// ── Init ───────────────────────────────────────────────────────────────────
+document.getElementById('query-form').addEventListener('submit', e => {
+  e.preventDefault();
+  startCasting();
+});
+
+document.getElementById('cast-btn').addEventListener('click', handleCast);
+document.getElementById('llm-form').addEventListener('submit', handleLLMSubmit);
+
+fetch('./assets/hexagrams.json')
+  .then(r => r.json())
+  .then(data => { hexagrams = data; })
+  .catch(() => {
+    document.getElementById('query-input').placeholder =
+      'Serve via http (python3 -m http.server 8888 in /public) to load hexagram data';
+  });
+</script>
+</body>
+</html>
