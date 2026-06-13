@@ -3,10 +3,10 @@
   "version": "0.1.0",
   "description": "Personal Yìjīng app",
   "scripts": {
-    "dev": "concurrently -k -n vite,server -c cyan,yellow \"vite\" \"nodemon server.js\"",
-    "server": "node server.js",
+    "dev": "concurrently -k -n vite,server -c cyan,yellow \"vite\" \"nodemon --exec 'node --env-file=.env' server.js\"",
+    "server": "node --env-file=.env server.js",
     "build": "vite build",
-    "start": "NODE_ENV=production node server.js"
+    "start": "NODE_ENV=production node --env-file=.env server.js"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.0",

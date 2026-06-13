@@ -1,4 +1,4 @@
-import hexagrams from '../../../public/assets/hexagrams.json';
+import hexagrams from './hexagrams.json';
 
 // The eight trigrams in KING_WEN row/column order (index 0–7).
 // lines: 3-value array [line1, line2, line3] bottom→top, stable values only (7=yáng, 8=yīn).
