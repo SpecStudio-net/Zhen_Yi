@@ -1,7 +1,11 @@
 import { useState, useRef, useEffect } from 'react';
+import ReactMarkdown            from 'react-markdown';
+import remarkBreaks             from 'remark-breaks';
 import { streamCompletion }    from '../../llm/llmClient';
 import { assembleSystemPrompt } from '../../llm/assembleContext';
 import styles from './LLMPanel.module.css';
+
+const REMARK_PLUGINS = [remarkBreaks];
 
 export function LLMPanel({ question, reading, messages, setMessages, onCopyToNotes }) {
   const [input,       setInput]       = useState('');
@@ -48,7 +52,9 @@ export function LLMPanel({ question, reading, messages, setMessages, onCopyToNot
         <div className={styles.thread}>
           {messages.map((msg, i) => (
             <div key={i} className={msg.role === 'user' ? styles.userMsg : styles.assistantMsg}>
-              <p className={styles.msgText}>{msg.content}</p>
+              <div className={styles.msgText}>
+                <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{msg.content}</ReactMarkdown>
+              </div>
               {msg.role === 'assistant' && (
                 <button className={styles.copyBtn} onClick={() => onCopyToNotes(msg.content)}>
                   copy to notes
@@ -58,9 +64,10 @@ export function LLMPanel({ question, reading, messages, setMessages, onCopyToNot
           ))}
           {streaming && (
             <div className={styles.assistantMsg}>
-              <p className={styles.msgText}>
-                {streamText}<span className={styles.cursor}>▋</span>
-              </p>
+              <div className={styles.msgText}>
+                <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{streamText}</ReactMarkdown>
+                <span className={styles.cursor}>▋</span>
+              </div>
             </div>
           )}
           <div ref={bottomRef} />

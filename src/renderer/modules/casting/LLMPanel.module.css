@@ -35,6 +35,9 @@
   max-width: 90%;
 }
 
+.msgText > :first-child { margin-top: 0; }
+.msgText > :last-child  { margin-bottom: 0; }
+
 .userMsg .msgText {
   color: var(--text-secondary, #9a9080);
   font-style: italic;

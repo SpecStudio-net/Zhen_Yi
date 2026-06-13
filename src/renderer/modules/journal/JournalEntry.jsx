@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import ReactMarkdown from 'react-markdown';
+import remarkBreaks  from 'remark-breaks';
 import { Hexagram } from '../../components/Hexagram';
 import { ReadingPanel } from '../casting/ReadingPanel';
 import {
@@ -7,6 +9,8 @@ import {
   priorityLine,
 } from '../../data/hexagrams';
 import styles from './JournalEntry.module.css';
+
+const REMARK_PLUGINS = [remarkBreaks];
 
 function formatDate(iso) {
   const d = new Date(iso);
@@ -77,7 +81,9 @@ export function JournalEntry({ entry, expanded, onToggle, onUpdateNotes, onToggl
                     key={i}
                     className={msg.role === 'user' ? styles.userMsg : styles.assistantMsg}
                   >
-                    <p className={styles.msgText}>{msg.content}</p>
+                    <div className={styles.msgText}>
+                      <ReactMarkdown remarkPlugins={REMARK_PLUGINS}>{msg.content}</ReactMarkdown>
+                    </div>
                   </div>
                 ))}
               </div>
