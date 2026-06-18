@@ -26,9 +26,12 @@
   color: var(--text-primary, #f0ead8);
   font-size: 26px;
   font-family: var(--font-display, 'Cormorant Garamond', 'EB Garamond', serif);
+  line-height: 1.3;
   padding: 6px 0;
   outline: none;
   transition: border-color var(--fade-duration, 300ms);
+  resize: none;
+  overflow: hidden;
 }
 
 .queryInput:focus {

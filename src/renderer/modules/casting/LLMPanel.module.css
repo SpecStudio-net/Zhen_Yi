@@ -123,10 +123,15 @@
   border: none;
   border-bottom: 1px solid rgba(154, 144, 128, 0.3);
   color: var(--text-primary, #f0ead8);
+  font-family: inherit;
   font-size: 16px;
+  line-height: 1.4;
   padding: 8px 0;
   outline: none;
   transition: border-color 200ms;
+  resize: none;
+  overflow-y: auto;
+  max-height: 40vh;
 }
 
 .input:focus         { border-bottom-color: var(--text-secondary, #9a9080); }

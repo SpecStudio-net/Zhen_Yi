@@ -28,6 +28,19 @@ export function CastingModule() {
     setPhase('casting');
   }
 
+  function handleQueryKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      submitQuery(e);
+    }
+  }
+
+  function autoGrow(e) {
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+  }
+
   function handleCast() {
     const value   = castLine();
     const updated = lines.map((v, i) => i === nextCast ? value : v);
@@ -83,11 +96,13 @@ export function CastingModule() {
       <div className={styles.queryBar}>
         {phase === 'idle' ? (
           <form className={styles.queryForm} onSubmit={submitQuery}>
-            <input
+            <textarea
               className={styles.queryInput}
-              type="text"
+              rows={1}
               value={query}
               onChange={e => setQuery(e.target.value)}
+              onInput={autoGrow}
+              onKeyDown={handleQueryKeyDown}
               placeholder="Enter your question or intention"
               autoFocus
             />

@@ -1,2 +1,2 @@
-cd "/Users/adyasaktisvami/Documents/Zhēn Yì"
+cd "/Users/adyasaktisvami/Documents/GitHub/Zhen_Yi"
 npm run dev

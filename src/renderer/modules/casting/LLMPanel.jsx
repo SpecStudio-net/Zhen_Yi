@@ -13,6 +13,7 @@ export function LLMPanel({ question, reading, messages, setMessages, onCopyToNot
   const [streamText,  setStreamText]  = useState('');
   const [model,       setModel]       = useState('claude-sonnet-4-6');
   const bottomRef = useRef(null);
+  const inputRef  = useRef(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -23,6 +24,7 @@ export function LLMPanel({ question, reading, messages, setMessages, onCopyToNot
     const q = input.trim();
     if (!q || streaming) return;
     setInput('');
+    if (inputRef.current) inputRef.current.style.height = 'auto';
 
     const userMsg     = { role: 'user', content: q };
     const history     = [...messages, userMsg];
@@ -44,6 +46,19 @@ export function LLMPanel({ question, reading, messages, setMessages, onCopyToNot
       setStreamText('');
       if (full) setMessages(prev => [...prev, { role: 'assistant', content: full }]);
     }
+  }
+
+  function handleKeyDown(e) {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleSubmit(e);
+    }
+  }
+
+  function autoGrow(e) {
+    const el = e.target;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
   }
 
   return (
@@ -75,11 +90,14 @@ export function LLMPanel({ question, reading, messages, setMessages, onCopyToNot
       )}
 
       <form className={styles.form} onSubmit={handleSubmit}>
-        <input
+        <textarea
+          ref={inputRef}
           className={styles.input}
-          type="text"
+          rows={1}
           value={input}
           onChange={e => setInput(e.target.value)}
+          onInput={autoGrow}
+          onKeyDown={handleKeyDown}
           placeholder={messages.length === 0 ? 'Ask about this reading…' : 'Ask another question…'}
           disabled={streaming}
         />
